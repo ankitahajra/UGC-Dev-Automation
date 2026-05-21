@@ -1,0 +1,126 @@
+workflow:
+  name: azure-function-auto-diagnose-and-auto-fix
+  description: Automated workflow to detect Azure Function failures, analyze root cause via ICA, notify team, propose fixes, and deploy with rollback and approval via BOB.
+components:
+  azureFunction:
+    type: timer-trigger
+    schedule: "0 */15 * * * *"
+notifications:
+  email:
+    enabled: true
+    recipients:
+      - ankita.hajra@ibm.com
+    triggers:
+      - jobFailure
+      - analysisCompleted
+    contents:
+      include:
+        - functionName
+        - invocationId
+        - exceptionMessage
+        - rootCauseSummary
+        - recommendedFix
+logging:
+  applicationInsights: enabled
+  logAnalytics: enabled
+monitoring:
+  azureMonitorAlert:
+    metric: function-failure-count
+    threshold: "> 0"
+    window: "5m"
+    action: eventGrid
+alertRouter:
+  type: eventGrid-or-logicApp
+  forwardsPayload: diagnosticsWebhook
+  payloadIncludes:
+    - functionName
+    - invocationId
+    - exceptionMessage
+    - stackTrace
+    - timestamp
+    - correlationId
+    - logsLast5Min
+    - cpuUsage
+    - memoryUsage
+    - deploymentVersion
+diagnosticsWebhook:
+  type: api-endpoint
+  functions:
+    - normalizeLogs
+    - aggregateMetrics
+    - generateDiagnosticPackage
+    - sendToICA
+    - sendEmailNotificationOnFailure
+ica:
+  responsibilities:
+    - analyzeLogs
+    - extractRootCause
+    - classifyFailure
+    - generateCodeFix
+    - generateIaCFix
+    - recommendConfigurationFix
+  produces:
+    - causeSummary
+    - recommendedFix
+    - codePatch
+    - infraPatch
+    - riskAssessment
+    - emailSummaryForTeam
+bob:
+  workflow:
+    steps:
+      - createBranch
+      - applyPatches
+      - runBuild
+      - openPullRequest
+      - requestHumanApproval
+      - mergeOnApproval
+      - triggerCICD
+      - onFailureTriggerRollback
+      - notifyTeamOnRollback
+  approvalRequired: true
+  deploys:
+    - updatedAzureFunction
+    - updatedInfrastructure
+rollback:
+  enabled: true
+  strategy:
+    - restorePreviousDeploymentPackage
+    - revertInfraChanges
+    - redeployLastSuccessVersion
+  triggers:
+    - deploymentFailure
+    - repeatedJobFailures
+  notifications:
+    email: ankita.hajra@ibm.com
+postDeploymentValidation:
+  monitors:
+    - nextScheduledExecution
+  outcomes:
+    success: markIssueResolved
+    failure:
+      - restartDiagnosticCycle
+      - initiateRollback
+security:
+  permissionsRequired:
+    - readApplicationInsights
+    - readAzureMonitor
+    - writeToGitRepository
+    - triggerCICD
+    - modifyInfrastructure
+    - deployCode
+    - readDeploymentHistory
+errorHandling:
+  icaUnknownCause:
+    action: createIssue
+    notes: manualAnalysisRequired
+    notify: ankita.hajra@ibm.com
+  bobPatchFailure:
+    action: triggerRollback
+    notify: ankita.hajra@ibm.com
+extensibility:
+  options:
+    - supportForLogicApps
+    - noApprovalForLowRiskIssues
+    - failurePatternKnowledgeBase
+    - multiChannelNotifications

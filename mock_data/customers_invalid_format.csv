@@ -1,0 +1,6 @@
+customer_id,name,email,phone,status,created_date
+5001,User 1,invalid-email,555-0501,active,2024-04-01
+5002,User 2,user2@email,555-0502,active,not-a-date
+5003,User 3,user3@email.com,invalid-phone,active,2024-04-03
+5004,User 4,user4@email.com,555-0504,INVALID_STATUS,2024-04-04
+5005,User 5,user5@email.com,555-0505,active,2024-13-99

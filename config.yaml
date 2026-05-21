@@ -1,0 +1,141 @@
+# Azure Function Auto-Diagnose and Auto-Fix Configuration
+# This file contains all configuration parameters for the pipeline
+
+# Azure Configuration
+azure:
+  subscription_id: "${AZURE_SUBSCRIPTION_ID}"
+  tenant_id: "${AZURE_TENANT_ID}"
+  client_id: "${AZURE_CLIENT_ID}"
+  client_secret: "${AZURE_CLIENT_SECRET}"
+  resource_group: "${AZURE_RESOURCE_GROUP}"
+  function_name: "${AZURE_FUNCTION_NAME}"
+  
+# Application Insights Configuration
+application_insights:
+  instrumentation_key: "${APP_INSIGHTS_KEY}"
+  connection_string: "${APP_INSIGHTS_CONNECTION_STRING}"
+  query_timespan: "PT5M"  # Last 5 minutes
+  
+# Log Analytics Configuration
+log_analytics:
+  workspace_id: "${LOG_ANALYTICS_WORKSPACE_ID}"
+  workspace_key: "${LOG_ANALYTICS_WORKSPACE_KEY}"
+  
+# Azure Monitor Alert Configuration
+monitoring:
+  alert_metric: "function-failure-count"
+  alert_threshold: 0
+  alert_window_minutes: 5
+  check_interval_seconds: 60
+  
+# Event Grid Configuration
+event_grid:
+  topic_endpoint: "${EVENT_GRID_TOPIC_ENDPOINT}"
+  topic_key: "${EVENT_GRID_TOPIC_KEY}"
+  
+# Diagnostics Webhook Configuration
+diagnostics_webhook:
+  host: "0.0.0.0"
+  port: 8080
+  endpoint: "/diagnostics"
+  max_log_lines: 1000
+  
+# ICA (Intelligent Code Analyzer) Configuration
+ica:
+  enabled: true
+  api_endpoint: "${ICA_API_ENDPOINT}"
+  api_key: "${ICA_API_KEY}"
+  timeout_seconds: 300
+  max_retries: 3
+  analysis_depth: "deep"  # Options: quick, standard, deep
+  
+# BOB (Build, Open PR, Branch) Configuration
+bob:
+  git_provider: "github"  # Options: github, gitlab, azure-devops
+  repository_url: "${GIT_REPOSITORY_URL}"
+  repository_token: "${GIT_TOKEN}"
+  base_branch: "main"
+  branch_prefix: "autofix"
+  require_approval: true
+  auto_merge_on_approval: true
+  build_command: "dotnet build --configuration Release"
+  test_command: "dotnet test --configuration Release"
+  
+# CI/CD Pipeline Configuration
+cicd:
+  pipeline_type: "azure-pipelines"  # Options: azure-pipelines, github-actions, jenkins
+  pipeline_file: "bob-pipeline.yaml"
+  trigger_on_merge: true
+  
+# Post-Deployment Validation Configuration
+validation:
+  enabled: true
+  wait_time_seconds: 300
+  max_validation_attempts: 5
+  success_criteria:
+    - no_errors_in_logs
+    - successful_execution
+    - response_time_acceptable
+    
+# Security Configuration
+security:
+  encrypt_secrets: true
+  secret_store: "azure-keyvault"  # Options: azure-keyvault, hashicorp-vault, env
+  keyvault_url: "${AZURE_KEYVAULT_URL}"
+  
+# Error Handling Configuration
+error_handling:
+  retry_attempts: 3
+  retry_delay_seconds: 10
+  retry_backoff_multiplier: 2
+  create_issue_on_unknown_cause: true
+  issue_tracker: "github"  # Options: github, jira, azure-devops
+  notification_channels:
+    - email
+    - slack
+    - teams
+    
+# Notification Configuration
+notifications:
+  email:
+    enabled: true
+    smtp_server: "${SMTP_SERVER}"
+    smtp_port: 587
+    smtp_username: "${SMTP_USERNAME}"
+    smtp_password: "${SMTP_PASSWORD}"
+    from_address: "autofix@example.com"
+    to_addresses:
+      - "ankita.hajra@ibm.com"
+      - "team@example.com"
+  slack:
+    enabled: false
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+  teams:
+    enabled: false
+    webhook_url: "${TEAMS_WEBHOOK_URL}"
+    
+# Logging Configuration
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "json"  # Options: json, text
+  output: "both"  # Options: console, file, both
+  file_path: "logs/pipeline.log"
+  max_file_size_mb: 100
+  backup_count: 5
+  
+# Extensibility Options
+extensibility:
+  support_logic_apps: true
+  no_approval_for_low_risk: false
+  low_risk_threshold: 0.3
+  use_knowledge_base: true
+  knowledge_base_path: "knowledge_base.json"
+  
+# Performance Configuration
+performance:
+  max_concurrent_analyses: 3
+  analysis_timeout_minutes: 30
+  cache_enabled: true
+  cache_ttl_seconds: 3600
+
+# Made with Bob

@@ -1,0 +1,116 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║     🚀 AZURE FUNCTION AUTO-FIX PIPELINE - START HERE          ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+📌 QUICK START - ALL DEMOS (RECOMMENDED):
+
+   Windows Users:
+   ──────────────
+   1. Double-click: START_ALL_DEMOS.bat
+   2. Wait for all services to start (~30 seconds)
+   3. Browsers will open automatically to:
+      - Cron Job Dashboard: http://localhost:5001
+      - Web Dashboard: http://localhost:3000
+
+   This will:
+   ✓ Install all dependencies automatically
+   ✓ Start Mock ICA Service (port 5000)
+   ✓ Start Diagnostics Webhook (port 8080)
+   ✓ Start Cron Job Dashboard (port 5001)
+   ✓ Start Web Dashboard (port 3000)
+   ✓ Run automated demo scenarios
+   ✓ Show you everything the system can do!
+
+📌 INDIVIDUAL DEMOS (Choose One):
+
+   Option 1: Cron Job Demo (Simplest)
+   ───────────────────────────────────
+   1. Double-click: run_cron_demo.bat
+   2. Open browser to: http://localhost:5001
+   3. Click buttons to simulate failures and see fixes
+
+   Option 2: Full Automation Demo
+   ───────────────────────────────
+   1. Double-click: run_automation.bat
+   2. Watch complete pipeline execution
+   3. See all 5 stages in action
+
+   Option 3: Web Dashboard Only
+   ────────────────────────────
+   1. Double-click: run_web_demo.bat
+   2. Open browser to: http://localhost:3000
+   3. Interactive web interface
+
+   Linux/Mac Users:
+   ────────────────
+   1. Open terminal in this folder
+   2. Run: chmod +x run_cron_demo.sh
+   3. Run: ./run_cron_demo.sh
+   4. Open your browser to: http://localhost:5001
+
+
+🎯 WHAT TO DO IN THE DEMO:
+
+   Step 1: Run a Cron Job
+   ──────────────────────
+   - Click "▶️ Run Job" on any job card
+   - Watch it fail with a specific error
+   - See the error message appear
+
+   Step 2: Get Automated Fix
+   ─────────────────────────
+   - Click "🔧 Check & Fix" button
+   - View the comprehensive fix analysis
+   - See before/after code comparison
+
+   Step 3: Review Fix Details
+   ──────────────────────────
+   - Read the diagnosis and root cause
+   - Review the code changes
+   - Check testing recommendations
+   - See prevention measures
+
+
+📚 AVAILABLE CRON JOBS:
+
+   ✓ Cron Job 1: Null Reference Error
+     → API returns null without validation
+
+   ✓ Cron Job 2: Memory Overflow
+     → Loading 1 million records at once
+
+   ✓ Cron Job 3: Timeout Error
+     → External API takes too long
+
+   ✓ Cron Job 4: Database Lock Error
+     → Concurrent access to same table
+
+
+📖 DOCUMENTATION:
+
+   Quick Start:  CRON_DEMO_QUICKSTART.md
+   Full Guide:   CRON_JOB_DEMO.md
+
+
+❓ TROUBLESHOOTING:
+
+   Port Already in Use?
+   → Edit cron_job_dashboard.py, change port from 5001 to 5002
+
+   Flask Not Found?
+   → Run: pip install flask
+
+   Jobs Not Loading?
+   → Check browser console (F12) for errors
+   → Verify Flask server is running
+
+
+🎉 ENJOY THE DEMO!
+
+   This demonstrates automated failure detection and fix generation
+   for common cron job issues. Try all 4 scenarios!
+
+
+Made with Bob 🤖

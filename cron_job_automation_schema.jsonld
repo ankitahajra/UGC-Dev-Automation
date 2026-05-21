@@ -1,0 +1,616 @@
+{
+  "@context": {
+    "@vocab": "http://schema.org/",
+    "ica": "https://ica.microsoft.com/schema/",
+    "cronJob": "https://ica.microsoft.com/schema/cronJob/",
+    "automation": "https://ica.microsoft.com/schema/automation/"
+  },
+  "@graph": [
+    {
+      "@id": "cronJob:CronJobAutomationSystem",
+      "@type": "SoftwareApplication",
+      "name": "Cron Job Automation Dashboard",
+      "description": "Automated system for monitoring, analyzing, and fixing cron job failures with intelligent diagnostics and automated remediation",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform",
+      "version": "1.0.0",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Mock cron job scenarios",
+        "Automated failure analysis",
+        "Intelligent fix generation",
+        "Real-time automation pipeline",
+        "PR creation and deployment",
+        "Email notifications",
+        "End-to-end demonstration"
+      ]
+    },
+    {
+      "@id": "cronJob:CronJob",
+      "@type": "Class",
+      "name": "CronJob",
+      "description": "Represents a scheduled job that runs periodically",
+      "properties": [
+        {
+          "@id": "cronJob:jobId",
+          "@type": "Property",
+          "name": "jobId",
+          "description": "Unique identifier for the cron job",
+          "rangeIncludes": "Text",
+          "required": true
+        },
+        {
+          "@id": "cronJob:name",
+          "@type": "Property",
+          "name": "name",
+          "description": "Human-readable name of the cron job",
+          "rangeIncludes": "Text",
+          "required": true
+        },
+        {
+          "@id": "cronJob:description",
+          "@type": "Property",
+          "name": "description",
+          "description": "Detailed description of what the job does",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:status",
+          "@type": "Property",
+          "name": "status",
+          "description": "Current execution status of the job",
+          "rangeIncludes": "cronJob:CronJobStatus",
+          "required": true
+        },
+        {
+          "@id": "cronJob:lastExecutionTime",
+          "@type": "Property",
+          "name": "lastExecutionTime",
+          "description": "Timestamp of the last execution",
+          "rangeIncludes": "DateTime"
+        },
+        {
+          "@id": "cronJob:lastError",
+          "@type": "Property",
+          "name": "lastError",
+          "description": "Error message from the last failed execution",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:executionHistory",
+          "@type": "Property",
+          "name": "executionHistory",
+          "description": "Historical record of all executions",
+          "rangeIncludes": "cronJob:ExecutionRecord",
+          "isArray": true
+        }
+      ]
+    },
+    {
+      "@id": "cronJob:CronJobStatus",
+      "@type": "Enumeration",
+      "name": "CronJobStatus",
+      "description": "Possible states of a cron job",
+      "values": [
+        {
+          "@id": "cronJob:StatusPending",
+          "name": "pending",
+          "description": "Job is waiting to be executed"
+        },
+        {
+          "@id": "cronJob:StatusRunning",
+          "name": "running",
+          "description": "Job is currently executing"
+        },
+        {
+          "@id": "cronJob:StatusSuccess",
+          "name": "success",
+          "description": "Job completed successfully"
+        },
+        {
+          "@id": "cronJob:StatusFailed",
+          "name": "failed",
+          "description": "Job execution failed"
+        }
+      ]
+    },
+    {
+      "@id": "cronJob:FailureType",
+      "@type": "Enumeration",
+      "name": "FailureType",
+      "description": "Categories of failures that can occur in cron jobs",
+      "values": [
+        {
+          "@id": "cronJob:NullReferenceError",
+          "name": "null_reference_error",
+          "description": "Attempting to access properties of null or undefined objects"
+        },
+        {
+          "@id": "cronJob:MemoryOverflow",
+          "name": "memory_overflow",
+          "description": "Exceeding available memory limits"
+        },
+        {
+          "@id": "cronJob:TimeoutError",
+          "name": "timeout_error",
+          "description": "Operation exceeding time limit"
+        },
+        {
+          "@id": "cronJob:ApiConnectionError",
+          "name": "api_connection_error",
+          "description": "Failed to connect to external API"
+        },
+        {
+          "@id": "cronJob:DatabaseLockError",
+          "name": "database_lock_error",
+          "description": "Unable to acquire database lock"
+        },
+        {
+          "@id": "cronJob:PermissionDenied",
+          "name": "permission_denied",
+          "description": "Insufficient permissions to perform operation"
+        },
+        {
+          "@id": "cronJob:InvalidConfiguration",
+          "name": "invalid_configuration",
+          "description": "Configuration file or settings are invalid"
+        },
+        {
+          "@id": "cronJob:ResourceExhausted",
+          "name": "resource_exhausted",
+          "description": "System resources (CPU, disk, network) exhausted"
+        }
+      ]
+    },
+    {
+      "@id": "cronJob:ExecutionRecord",
+      "@type": "Class",
+      "name": "ExecutionRecord",
+      "description": "Record of a single job execution",
+      "properties": [
+        {
+          "@id": "cronJob:timestamp",
+          "@type": "Property",
+          "name": "timestamp",
+          "description": "When the execution occurred",
+          "rangeIncludes": "DateTime",
+          "required": true
+        },
+        {
+          "@id": "cronJob:status",
+          "@type": "Property",
+          "name": "status",
+          "description": "Execution result status",
+          "rangeIncludes": "cronJob:CronJobStatus",
+          "required": true
+        },
+        {
+          "@id": "cronJob:duration",
+          "@type": "Property",
+          "name": "duration",
+          "description": "Execution duration in seconds",
+          "rangeIncludes": "Number"
+        },
+        {
+          "@id": "cronJob:error",
+          "@type": "Property",
+          "name": "error",
+          "description": "Error message if execution failed",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:errorDetails",
+          "@type": "Property",
+          "name": "errorDetails",
+          "description": "Detailed error information",
+          "rangeIncludes": "cronJob:ErrorDetails"
+        }
+      ]
+    },
+    {
+      "@id": "cronJob:ErrorDetails",
+      "@type": "Class",
+      "name": "ErrorDetails",
+      "description": "Detailed information about an error",
+      "properties": [
+        {
+          "@id": "cronJob:errorType",
+          "@type": "Property",
+          "name": "errorType",
+          "description": "Category of the error",
+          "rangeIncludes": "cronJob:FailureType"
+        },
+        {
+          "@id": "cronJob:line",
+          "@type": "Property",
+          "name": "line",
+          "description": "Code line where error occurred",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:variable",
+          "@type": "Property",
+          "name": "variable",
+          "description": "Variable involved in the error",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:rootCause",
+          "@type": "Property",
+          "name": "rootCause",
+          "description": "Root cause analysis of the error",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "cronJob:stackTrace",
+          "@type": "Property",
+          "name": "stackTrace",
+          "description": "Stack trace of the error",
+          "rangeIncludes": "Text",
+          "isArray": true
+        }
+      ]
+    },
+    {
+      "@id": "automation:FixAnalysis",
+      "@type": "Class",
+      "name": "FixAnalysis",
+      "description": "Automated analysis and fix recommendation for a failed job",
+      "properties": [
+        {
+          "@id": "automation:status",
+          "@type": "Property",
+          "name": "status",
+          "description": "Status of the fix generation",
+          "rangeIncludes": "Text",
+          "required": true
+        },
+        {
+          "@id": "automation:diagnosis",
+          "@type": "Property",
+          "name": "diagnosis",
+          "description": "Diagnostic information about the failure",
+          "rangeIncludes": "automation:Diagnosis"
+        },
+        {
+          "@id": "automation:rootCause",
+          "@type": "Property",
+          "name": "rootCause",
+          "description": "Identified root cause of the failure",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:confidence",
+          "@type": "Property",
+          "name": "confidence",
+          "description": "Confidence level of the fix (0.0 to 1.0)",
+          "rangeIncludes": "Number"
+        },
+        {
+          "@id": "automation:fixApplied",
+          "@type": "Property",
+          "name": "fixApplied",
+          "description": "Details of the fix that was applied",
+          "rangeIncludes": "automation:Fix"
+        },
+        {
+          "@id": "automation:codeChanges",
+          "@type": "Property",
+          "name": "codeChanges",
+          "description": "Code changes made to fix the issue",
+          "rangeIncludes": "automation:CodeChanges"
+        },
+        {
+          "@id": "automation:testingRecommendations",
+          "@type": "Property",
+          "name": "testingRecommendations",
+          "description": "Recommended tests to verify the fix",
+          "rangeIncludes": "Text",
+          "isArray": true
+        }
+      ]
+    },
+    {
+      "@id": "automation:Diagnosis",
+      "@type": "Class",
+      "name": "Diagnosis",
+      "description": "Diagnostic information about a failure",
+      "properties": [
+        {
+          "@id": "automation:issue",
+          "@type": "Property",
+          "name": "issue",
+          "description": "Description of the issue",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:severity",
+          "@type": "Property",
+          "name": "severity",
+          "description": "Severity level of the issue",
+          "rangeIncludes": "Text"
+        }
+      ]
+    },
+    {
+      "@id": "automation:Fix",
+      "@type": "Class",
+      "name": "Fix",
+      "description": "Details of an applied fix",
+      "properties": [
+        {
+          "@id": "automation:type",
+          "@type": "Property",
+          "name": "type",
+          "description": "Type of fix applied",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:description",
+          "@type": "Property",
+          "name": "description",
+          "description": "Description of what the fix does",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:changes",
+          "@type": "Property",
+          "name": "changes",
+          "description": "List of changes made",
+          "rangeIncludes": "Text",
+          "isArray": true
+        }
+      ]
+    },
+    {
+      "@id": "automation:CodeChanges",
+      "@type": "Class",
+      "name": "CodeChanges",
+      "description": "Before and after code comparison",
+      "properties": [
+        {
+          "@id": "automation:original",
+          "@type": "Property",
+          "name": "original",
+          "description": "Original problematic code",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:fixed",
+          "@type": "Property",
+          "name": "fixed",
+          "description": "Fixed code with corrections applied",
+          "rangeIncludes": "Text"
+        }
+      ]
+    },
+    {
+      "@id": "automation:AutomationPipeline",
+      "@type": "Class",
+      "name": "AutomationPipeline",
+      "description": "End-to-end automation pipeline for applying fixes",
+      "properties": [
+        {
+          "@id": "automation:status",
+          "@type": "Property",
+          "name": "status",
+          "description": "Current status of the pipeline",
+          "rangeIncludes": "automation:PipelineStatus"
+        },
+        {
+          "@id": "automation:currentJob",
+          "@type": "Property",
+          "name": "currentJob",
+          "description": "Job currently being processed",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:currentStage",
+          "@type": "Property",
+          "name": "currentStage",
+          "description": "Current stage of the pipeline",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:stages",
+          "@type": "Property",
+          "name": "stages",
+          "description": "Status of each pipeline stage",
+          "rangeIncludes": "automation:PipelineStage",
+          "isArray": true
+        }
+      ]
+    },
+    {
+      "@id": "automation:PipelineStatus",
+      "@type": "Enumeration",
+      "name": "PipelineStatus",
+      "description": "Possible states of the automation pipeline",
+      "values": [
+        {
+          "@id": "automation:StatusIdle",
+          "name": "idle",
+          "description": "Pipeline is not running"
+        },
+        {
+          "@id": "automation:StatusRunning",
+          "name": "running",
+          "description": "Pipeline is currently executing"
+        },
+        {
+          "@id": "automation:StatusCompleted",
+          "name": "completed",
+          "description": "Pipeline completed successfully"
+        },
+        {
+          "@id": "automation:StatusFailed",
+          "name": "failed",
+          "description": "Pipeline execution failed"
+        }
+      ]
+    },
+    {
+      "@id": "automation:PipelineStage",
+      "@type": "Class",
+      "name": "PipelineStage",
+      "description": "Individual stage in the automation pipeline",
+      "properties": [
+        {
+          "@id": "automation:name",
+          "@type": "Property",
+          "name": "name",
+          "description": "Name of the stage",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:status",
+          "@type": "Property",
+          "name": "status",
+          "description": "Status of the stage",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:message",
+          "@type": "Property",
+          "name": "message",
+          "description": "Status message for the stage",
+          "rangeIncludes": "Text"
+        },
+        {
+          "@id": "automation:prUrl",
+          "@type": "Property",
+          "name": "prUrl",
+          "description": "URL of the created pull request (if applicable)",
+          "rangeIncludes": "URL"
+        },
+        {
+          "@id": "automation:branchName",
+          "@type": "Property",
+          "name": "branchName",
+          "description": "Name of the branch created (if applicable)",
+          "rangeIncludes": "Text"
+        }
+      ]
+    },
+    {
+      "@id": "automation:APIEndpoints",
+      "@type": "Class",
+      "name": "APIEndpoints",
+      "description": "REST API endpoints for the Cron Job Automation Dashboard",
+      "endpoints": [
+        {
+          "@id": "automation:ListJobs",
+          "@type": "APIEndpoint",
+          "name": "List Jobs",
+          "path": "/api/jobs",
+          "method": "GET",
+          "description": "Retrieve list of all cron jobs",
+          "response": {
+            "status": "success",
+            "jobs": "Array of CronJob objects",
+            "count": "Number of jobs"
+          }
+        },
+        {
+          "@id": "automation:ResetJobs",
+          "@type": "APIEndpoint",
+          "name": "Reset Jobs",
+          "path": "/api/jobs/reset",
+          "method": "POST",
+          "description": "Reset all jobs to pending state",
+          "response": {
+            "status": "success",
+            "message": "All jobs reset to pending state"
+          }
+        },
+        {
+          "@id": "automation:ExecuteJob",
+          "@type": "APIEndpoint",
+          "name": "Execute Job",
+          "path": "/api/jobs/{job_id}/execute",
+          "method": "POST",
+          "description": "Execute a specific cron job",
+          "parameters": [
+            {
+              "name": "job_id",
+              "in": "path",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "response": {
+            "status": "success",
+            "execution_result": "ExecutionRecord object",
+            "timestamp": "ISO 8601 timestamp"
+          }
+        },
+        {
+          "@id": "automation:AnalyzeJob",
+          "@type": "APIEndpoint",
+          "name": "Analyze Job",
+          "path": "/api/jobs/{job_id}/analyze",
+          "method": "POST",
+          "description": "Analyze a failed job and generate fix recommendations",
+          "parameters": [
+            {
+              "name": "job_id",
+              "in": "path",
+              "required": true,
+              "type": "string"
+            }
+          ],
+          "response": {
+            "status": "success",
+            "analysis": "FixAnalysis object",
+            "job_id": "string",
+            "timestamp": "ISO 8601 timestamp"
+          }
+        },
+        {
+          "@id": "automation:TriggerAutomation",
+          "@type": "APIEndpoint",
+          "name": "Trigger Automation",
+          "path": "/api/automation/trigger",
+          "method": "POST",
+          "description": "Trigger the automation pipeline to apply fixes",
+          "requestBody": {
+            "job_id": "string",
+            "analysis": "FixAnalysis object"
+          },
+          "response": {
+            "message": "Automation pipeline started",
+            "status": "running",
+            "job_id": "string"
+          }
+        },
+        {
+          "@id": "automation:GetAutomationStatus",
+          "@type": "APIEndpoint",
+          "name": "Get Automation Status",
+          "path": "/api/automation/status",
+          "method": "GET",
+          "description": "Get current status of the automation pipeline",
+          "response": "AutomationPipeline object"
+        },
+        {
+          "@id": "automation:HealthCheck",
+          "@type": "APIEndpoint",
+          "name": "Health Check",
+          "path": "/health",
+          "method": "GET",
+          "description": "Check system health status",
+          "response": {
+            "status": "healthy",
+            "timestamp": "ISO 8601 timestamp",
+            "service": "Cron Job Automation Dashboard",
+            "pipeline_available": "boolean"
+          }
+        }
+      ]
+    }
+  ]
+}

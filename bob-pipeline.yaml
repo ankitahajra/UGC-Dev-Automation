@@ -1,0 +1,108 @@
+name: bob-auto-fix-pipeline
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+variables:
+  buildConfiguration: Release
+  artifactName: function-app-package
+  teamEmail: ankita.hajra@ibm.com
+stages:
+  - stage: Build
+    displayName: "Build and Validate"
+    jobs:
+      - job: BuildFunction
+        steps:
+          - task: Checkout@v1
+          - script: |
+              echo "Restoring packages..."
+              dotnet restore
+            displayName: Restore packages
+          - script: |
+              echo "Building solution..."
+              dotnet build --configuration $(buildConfiguration)
+            displayName: Build code
+          - script: |
+              echo "Running tests..."
+              dotnet test --configuration $(buildConfiguration)
+            displayName: Run tests
+          - script: |
+              echo "Packaging function..."
+              dotnet publish -c $(buildConfiguration) -o output
+            displayName: Package artifacts
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: output
+              artifact: $(artifactName)
+            displayName: Publish artifact
+  - stage: Review
+    displayName: "Waiting for Manual Approval"
+    dependsOn: Build
+    jobs:
+      - job: AwaitApproval
+        timeoutInMinutes: 4320
+        steps:
+          - script: |
+              echo "BOB is waiting for approval to deploy changes."
+            displayName: Await manual approval
+  - stage: Deploy
+    displayName: "Deploy to Azure"
+    dependsOn: Review
+    condition: succeeded('Review')
+    jobs:
+      - job: DeployFunction
+        continueOnError: true
+        steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: $(artifactName)
+              targetPath: $(Pipeline.Workspace)/artifact
+          - script: |
+              echo "Logging into Azure..."
+              az login --service-principal \
+                --username $AZURE_CLIENT_ID \
+                --password $AZURE_CLIENT_SECRET \
+                --tenant $AZURE_TENANT_ID
+            displayName: Azure login
+          - script: |
+              echo "Deploying Azure Function..."
+              az functionapp deployment source config-zip \
+                --src "$(Pipeline.Workspace)/artifact/output.zip" \
+                --resource-group $AZURE_RESOURCE_GROUP \
+                --name $AZURE_FUNCTION_NAME
+            displayName: Deploy Function
+          - script: |
+              echo "Deployment completed."
+            displayName: Deployment confirmation
+  - stage: Rollback
+    displayName: "Rollback on Failure"
+    dependsOn: Deploy
+    condition: failed('Deploy')
+    jobs:
+      - job: RollbackJob
+        steps:
+          - script: |
+              echo "Deployment failed. Starting rollback..."
+              echo "Restoring previous successful deployment..."
+              az functionapp deployment list-publishing-profiles \
+                --name $AZURE_FUNCTION_NAME \
+                --resource-group $AZURE_RESOURCE_GROUP
+            displayName: Fetch last successful deployment
+          - script: |
+              echo "Rolling back to previous version..."
+              az functionapp deployment source config-zip \
+                --src "previous-success-package.zip" \
+                --resource-group $AZURE_RESOURCE_GROUP \
+                --name $AZURE_FUNCTION_NAME
+            displayName: Rollback execution
+          - script: |
+              echo "Rollback completed."
+            displayName: Rollback complete
+          - script: |
+              echo "Sending failure notification to team..."
+              echo "To: $(teamEmail)"
+              echo "Subject: Azure Function Deployment Failed and Rolled Back"
+              echo "Body: Deployment failed for branch $(Build.SourceBranch). Rollback executed automatically. ICA analysis attached."
+              # Email sending handled by SMTP or sendgrid
+            displayName: Notify team via email

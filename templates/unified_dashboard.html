@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Job Automation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .job-title {
+            font-size: 1.4em;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .job-id {
+            background: #f0f0f0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .job-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .job-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-failed {
+            background: #ff7675;
+            color: white;
+        }
+
+        .status-success {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-run {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-run:hover:not(:disabled) {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .btn-analyze {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-analyze:hover:not(:disabled) {
+            background: #019874;
+            transform: scale(1.05);
+        }
+
+        .btn-automate {
+            background: #fd79a8;
+            color: white;
+        }
+
+        .btn-automate:hover:not(:disabled) {
+            background: #e84393;
+            transform: scale(1.05);
+        }
+
+        .error-display {
+            background: #fff5f5;
+            border-left: 4px solid #ff7675;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .error-display.show {
+            display: block;
+        }
+
+        .error-title {
+            color: #d63031;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .fix-section {
+            margin-bottom: 25px;
+        }
+
+        .fix-section h3 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        .fix-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .fix-info-item {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .fix-info-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 150px;
+        }
+
+        .fix-info-value {
+            color: #666;
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .code-label {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px 5px 0 0;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        .fix-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .fix-list li {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-left: 4px solid #00b894;
+            border-radius: 5px;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .confidence-high {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .confidence-medium {
+            background: #ffeaa7;
+            color: #fdcb6e;
+        }
+
+        .confidence-low {
+            background: #ff7675;
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .automation-trigger {
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .automation-trigger h4 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .automation-trigger p {
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 15px;
+        }
+
+        .btn-trigger-automation {
+            background: white;
+            color: #e84393;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-trigger-automation:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        .pipeline-progress {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .stage {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .stage-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .stage-pending {
+            background: #e0e0e0;
+            color: #999;
+        }
+
+        .stage-running {
+            background: #667eea;
+            color: white;
+        }
+
+        .stage-completed {
+            background: #00b894;
+            color: white;
+        }
+
+        .stage-failed {
+            background: #ff7675;
+            color: white;
+        }
+
+        .stage-info {
+            flex: 1;
+        }
+
+        .stage-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stage-message {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .pr-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .pr-link:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Cron Job Automation Dashboard</h1>
+            <p>Run mock scenarios, analyze failures, and trigger real automation pipeline</p>
+        </div>
+
+        <div id="jobs-container" class="jobs-grid">
+            <!-- Jobs will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Analysis Modal -->
+    <div id="analysis-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔍 Automated Fix Analysis</h2>
+                <button class="close-btn" onclick="closeAnalysisModal()">&times;</button>
+            </div>
+            <div id="analysis-content">
+                <!-- Analysis details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Automation Modal -->
+    <div id="automation-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚙️ Automation Pipeline</h2>
+                <button class="close-btn" onclick="closeAutomationModal()">&times;</button>
+            </div>
+            <div id="automation-content">
+                <!-- Automation progress will be shown here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let jobs = [];
+        let currentAnalysis = null;
+        let currentJobId = null;
+        let automationInterval = null;
+
+        // Load jobs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadJobs();
+        });
+
+        async function loadJobs() {
+            try {
+                // Reset all jobs to pending state on page load
+                await fetch('/api/jobs/reset', { method: 'POST' });
+                
+                const response = await fetch('/api/jobs');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    jobs = data.jobs;
+                    renderJobs();
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+            }
+        }
+
+        function renderJobs() {
+            const container = document.getElementById('jobs-container');
+            container.innerHTML = '';
+
+            jobs.forEach(job => {
+                const jobCard = createJobCard(job);
+                container.appendChild(jobCard);
+            });
+        }
+
+        function createJobCard(job) {
+            const card = document.createElement('div');
+            card.className = 'job-card';
+            card.id = `job-${job.job_id}`;
+
+            const statusClass = `status-${job.status}`;
+            
+            card.innerHTML = `
+                <div class="job-header">
+                    <div class="job-title">${job.name}</div>
+                    <div class="job-id">${job.job_id}</div>
+                </div>
+                <div class="job-description">${job.description}</div>
+                <div class="job-status ${statusClass}">${job.status.toUpperCase()}</div>
+                <div class="job-actions">
+                    <button class="btn btn-run" onclick="runJob('${job.job_id}')">
+                        ▶️ Run Job
+                    </button>
+                    <button class="btn btn-analyze" onclick="analyzeJob('${job.job_id}')" 
+                            ${job.status !== 'failed' ? 'disabled' : ''}>
+                        🔍 Analyze & Fix
+                    </button>
+                </div>
+                <div id="error-${job.job_id}" class="error-display">
+                    <div class="error-title">Last Error:</div>
+                    <div class="error-message">${job.last_error || 'No error'}</div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function runJob(jobId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Running...';
+
+            try {
+                const response = await fetch(`/api/jobs/${jobId}/execute`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    const result = data.execution_result;
+                    
+                    // Update job status
+                    const job = jobs.find(j => j.job_id === jobId);
+                    if (job) {
+                        job.status = result.status;
+                        job.last_error = result.error;
+                    }
+
+                    // Show error if failed
+                    if (result.status === 'failed') {
+                        const errorDiv = document.getElementById(`error-${jobId}`);
+                        errorDiv.classList.add('show');
+                        errorDiv.querySelector('.error-message').textContent = result.error;
+                    }
+
+                    // Re-render jobs
+                    renderJobs();
+                }
+            } catch (error) {
+                console.error('Error running job:', error);
+                alert('Error running job: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '▶️ Run Job';
+            }
+        }
+
+        async function analyzeJob(jobId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Analyzing...';
+
+            try {
+                const response = await fetch(`/api/jobs/${jobId}/analyze`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    currentAnalysis = data.analysis;
+                    currentJobId = jobId;
+                    showAnalysisModal(data.analysis, jobId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error analyzing job:', error);
+                alert('Error analyzing job: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 Analyze & Fix';
+            }
+        }
+
+        function showAnalysisModal(analysis, jobId) {
+            const modal = document.getElementById('analysis-modal');
+            const content = document.getElementById('analysis-content');
+
+            let html = '';
+
+            if (analysis.status === 'fix_generated') {
+                const confidence = analysis.confidence || 0;
+                const confidenceClass = confidence > 0.8 ? 'confidence-high' : 
+                                       confidence > 0.5 ? 'confidence-medium' : 'confidence-low';
+
+                html = `
+                    <div class="success-message">
+                        ✅ Automated fix has been generated successfully!
+                    </div>
+
+                    <div class="fix-section">
+                        <h3>📊 Diagnosis</h3>
+                        <div class="fix-info">
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Issue:</span>
+                                <span class="fix-info-value">${analysis.diagnosis.issue}</span>
+                            </div>
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Severity:</span>
+                                <span class="fix-info-value">${analysis.diagnosis.severity.toUpperCase()}</span>
+                            </div>
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Root Cause:</span>
+                                <span class="fix-info-value">${analysis.root_cause}</span>
+                            </div>
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Confidence:</span>
+                                <span class="confidence-badge ${confidenceClass}">${(confidence * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fix-section">
+                        <h3>🔧 Fix Applied</h3>
+                        <div class="fix-info">
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Type:</span>
+                                <span class="fix-info-value">${analysis.fix_applied.type}</span>
+                            </div>
+                            <div class="fix-info-item">
+                                <span class="fix-info-label">Description:</span>
+                                <span class="fix-info-value">${analysis.fix_applied.description}</span>
+                            </div>
+                        </div>
+                        <ul class="fix-list">
+                            ${analysis.fix_applied.changes.map(change => `<li>✓ ${change}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    ${analysis.code_changes ? `
+                    <div class="fix-section">
+                        <h3>💻 Code Changes</h3>
+                        <div class="code-label">❌ Original Code (Problematic)</div>
+                        <div class="code-block">${escapeHtml(analysis.code_changes.original)}</div>
+                        
+                        <div class="code-label">✅ Fixed Code (Recommended)</div>
+                        <div class="code-block">${escapeHtml(analysis.code_changes.fixed)}</div>
+                    </div>
+                    ` : ''}
+
+                    <div class="automation-trigger">
+                        <h4>🚀 Ready to Deploy?</h4>
+                        <p>Trigger the automation pipeline to apply this fix, create a PR, and deploy to the server</p>
+                        <button class="btn-trigger-automation" onclick="triggerAutomation()">
+                            ⚡ Trigger Automation Pipeline
+                        </button>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="alert alert-warning">
+                        ⚠️ ${analysis.message || 'Unable to generate automated fix'}
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+            modal.classList.add('show');
+        }
+
+        function closeAnalysisModal() {
+            const modal = document.getElementById('analysis-modal');
+            modal.classList.remove('show');
+        }
+
+        async function triggerAutomation() {
+            if (!currentAnalysis || !currentJobId) {
+                alert('No analysis data available');
+                return;
+            }
+
+            // Close analysis modal
+            closeAnalysisModal();
+
+            // Show automation modal
+            const modal = document.getElementById('automation-modal');
+            modal.classList.add('show');
+
+            // Start automation
+            try {
+                const response = await fetch('/api/automation/trigger', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        job_id: currentJobId,
+                        analysis: currentAnalysis
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'running') {
+                    // Start polling for status
+                    automationInterval = setInterval(updateAutomationStatus, 1000);
+                } else {
+                    alert('Error: ' + data.error);
+                    closeAutomationModal();
+                }
+            } catch (error) {
+                console.error('Error triggering automation:', error);
+                alert('Error triggering automation: ' + error.message);
+                closeAutomationModal();
+            }
+        }
+
+        async function updateAutomationStatus() {
+            try {
+                const response = await fetch('/api/automation/status');
+                const state = await response.json();
+
+                renderAutomationProgress(state);
+
+                if (state.status === 'completed' || state.status === 'failed') {
+                    clearInterval(automationInterval);
+                    automationInterval = null;
+                }
+            } catch (error) {
+                console.error('Error updating automation status:', error);
+            }
+        }
+
+        function renderAutomationProgress(state) {
+            const content = document.getElementById('automation-content');
+
+            const stages = [
+                { key: 'diagnostics', name: 'Diagnostics Collection', icon: '📋' },
+                { key: 'analysis', name: 'ICA Analysis', icon: '🔍' },
+                { key: 'automation', name: 'BOB Automation', icon: '🤖' },
+                { key: 'deployment', name: 'Deployment', icon: '🚀' },
+                { key: 'validation', name: 'Validation', icon: '✅' }
+            ];
+
+            let html = '<div class="pipeline-progress">';
+
+            stages.forEach(stage => {
+                const stageData = state.stages[stage.key];
+                let stageClass = 'stage-pending';
+                let statusIcon = '⏳';
+
+                if (stageData) {
+                    if (stageData.status === 'running') {
+                        stageClass = 'stage-running';
+                        statusIcon = '<span class="loading"></span>';
+                    } else if (stageData.status === 'completed') {
+                        stageClass = 'stage-completed';
+                        statusIcon = '✓';
+                    } else if (stageData.status === 'failed') {
+                        stageClass = 'stage-failed';
+                        statusIcon = '✗';
+                    }
+                }
+
+                html += `
+                    <div class="stage">
+                        <div class="stage-icon ${stageClass}">${stage.icon}</div>
+                        <div class="stage-info">
+                            <div class="stage-name">${stage.name}</div>
+                            <div class="stage-message">${stageData ? stageData.message : 'Pending...'}</div>
+                            ${stageData && stageData.pr_url ? `<a href="${stageData.pr_url}" target="_blank" class="pr-link">View Pull Request</a>` : ''}
+                        </div>
+                        <div class="stage-icon ${stageClass}">${statusIcon}</div>
+                    </div>
+                `;
+            });
+
+            if (state.status === 'completed' && state.result) {
+                html += `
+                    <div class="success-message" style="margin-top: 20px;">
+                        <h3>🎉 Automation Completed Successfully!</h3>
+                        <p>${state.result.message}</p>
+                        ${state.result.pr_url ? `<a href="${state.result.pr_url}" target="_blank" class="pr-link">View Pull Request</a>` : ''}
+                    </div>
+                `;
+            } else if (state.status === 'failed' && state.result) {
+                html += `
+                    <div class="alert alert-warning" style="margin-top: 20px;">
+                        <h3>⚠️ Automation Failed</h3>
+                        <p>${state.result.message}</p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+
+            content.innerHTML = html;
+        }
+
+        function closeAutomationModal() {
+            const modal = document.getElementById('automation-modal');
+            modal.classList.remove('show');
+            if (automationInterval) {
+                clearInterval(automationInterval);
+                automationInterval = null;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const analysisModal = document.getElementById('analysis-modal');
+            const automationModal = document.getElementById('automation-modal');
+            
+            if (event.target === analysisModal) {
+                closeAnalysisModal();
+            }
+            if (event.target === automationModal) {
+                closeAutomationModal();
+            }
+        }
+    </script>
+</body>
+</html>
