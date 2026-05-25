@@ -139,3 +139,16 @@ performance:
   cache_ttl_seconds: 3600
 
 # Made with Bob
+
+# MCP Context Studio Configuration
+mcp:
+  enabled: true
+  context_id: "ctx_7c3822579dfd"
+  agent_persona: "FailureAnalyzer"
+  use_vector_search: true
+  use_graph_analysis: false  # Enable after testing vector search
+  confidence_threshold: 0.7
+  similarity_threshold: 0.75
+  max_historical_matches: 5
+  enable_learning: true
+  auto_ingest_successful_fixes: true

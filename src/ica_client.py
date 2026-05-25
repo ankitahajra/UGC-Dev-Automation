@@ -13,6 +13,14 @@ from src.utils import retry_with_backoff, format_timestamp
 
 logger = logging.getLogger(__name__)
 
+# Import MCP client (lazy import to avoid circular dependencies)
+try:
+    from src.mcp_client import MCPClientSync
+    MCP_AVAILABLE = True
+except ImportError:
+    MCP_AVAILABLE = False
+    logger.warning("MCP client not available, running without context enhancement")
+
 
 class FailureCategory(Enum):
     """Categories of failures that ICA can analyze."""
@@ -58,7 +66,18 @@ class ICAClient:
             'X-Analysis-Depth': self.analysis_depth
         }
         
-        logger.info("ICA client initialized")
+        # Initialize MCP client if available
+        self.mcp_client = None
+        self.use_mcp = config.get('mcp.enabled', True) and MCP_AVAILABLE
+        if self.use_mcp:
+            try:
+                self.mcp_client = MCPClientSync(config)
+                logger.info("ICA client initialized with MCP support")
+            except Exception as e:
+                logger.warning(f"Failed to initialize MCP client: {str(e)}")
+                self.use_mcp = False
+        else:
+            logger.info("ICA client initialized without MCP support")
     
     @retry_with_backoff(max_retries=3)
     def analyze_failure(self, diagnostic_package: Dict[str, Any]) -> Dict[str, Any]:
@@ -321,6 +340,87 @@ class ICAClient:
                 'message': str(e),
                 'timestamp': format_timestamp()
             }
+    
+    def _build_search_query(self, diagnostic_package: Dict[str, Any]) -> str:
+        """
+        Build semantic search query from diagnostic package.
+        
+        Args:
+            diagnostic_package: Diagnostic data
+            
+        Returns:
+            Search query string
+        """
+        error_message = diagnostic_package.get('error_message', '')
+        function_name = diagnostic_package.get('function_name', '')
+        error_type = diagnostic_package.get('error_type', '')
+        
+        query = f"""
+Error Type: {error_type}
+Function: {function_name}
+Error Message: {error_message}
+
+Find similar cron job failures with their resolutions.
+"""
+        
+        return query.strip()
+    
+    def process_analysis_with_context(
+        self,
+        diagnostic_package: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Enhanced analysis using MCP context + ICA intelligence.
+        
+        Args:
+            diagnostic_package: Diagnostic data
+            
+        Returns:
+            Complete analysis package with context
+        """
+        logger.info("Starting context-enhanced ICA analysis")
+        
+        try:
+            # Step 1: Find similar historical failures (if MCP enabled)
+            similar_failures = []
+            if self.use_mcp and self.mcp_client:
+                try:
+                    query = self._build_search_query(diagnostic_package)
+                    similar_failures = self.mcp_client.vector_search(query, top_k=5)
+                    logger.info(f"Found {len(similar_failures)} similar historical failures")
+                except Exception as e:
+                    logger.warning(f"MCP vector search failed, continuing without context: {str(e)}")
+            
+            # Step 2: Enrich diagnostic package with context
+            if similar_failures:
+                diagnostic_package['historical_context'] = similar_failures
+                diagnostic_package['confidence_boost'] = True
+                logger.info("Diagnostic package enriched with historical context")
+            
+            # Step 3: Perform standard ICA analysis
+            analysis_result = self.process_analysis(diagnostic_package)
+            
+            # Step 4: Enhance confidence if similar patterns found
+            if similar_failures and analysis_result.get('status') == 'success':
+                root_cause = analysis_result.get('root_cause', {})
+                original_confidence = root_cause.get('confidence', 0.0)
+                
+                # Boost confidence based on historical matches
+                confidence_boost = min(0.2, len(similar_failures) * 0.04)
+                enhanced_confidence = min(1.0, original_confidence + confidence_boost)
+                
+                root_cause['confidence'] = enhanced_confidence
+                root_cause['historical_matches'] = len(similar_failures)
+                root_cause['mcp_enhanced'] = True
+                
+                logger.info(f"Confidence boosted from {original_confidence:.2%} to {enhanced_confidence:.2%}")
+            
+            return analysis_result
+            
+        except Exception as e:
+            logger.error(f"Error in context-enhanced analysis: {str(e)}")
+            # Fallback to standard analysis
+            return self.process_analysis(diagnostic_package)
     
     def check_health(self) -> bool:
         """

@@ -17,3 +17,5 @@ azure-mgmt-web>=7.0.0
 
 # Web dashboard (optional)
 flask>=3.0.0
+# MCP Integration
+aiohttp>=3.8.0
