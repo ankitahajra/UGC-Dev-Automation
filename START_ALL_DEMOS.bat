@@ -273,8 +273,11 @@ echo   - logs\webhook.log
 echo   - logs\unified_dashboard.log
 echo   - logs\pipeline.log
 echo   - logs\mcp_demo.log
+echo   - logs\mcp_history_demo.log
+echo   - logs\sample_data_generation.log
 echo.
 echo MCP Features Active:
+echo   - NEW: Vector search UI in dashboard for similar failures
 echo   - Semantic search for similar failures
 echo   - Confidence boosting from historical data
 echo   - Automatic knowledge ingestion
@@ -300,20 +303,24 @@ echo UNIFIED DASHBOARD FEATURES:
 echo   - Browser opened to: http://localhost:5002
 echo   - Run mock cron jobs with 4 failure scenarios
 echo   - Click "Analyze ^& Fix" to see automated analysis
+echo   - NEW: Click "Search Similar Failures" for MCP vector search demo
 echo   - Click "Trigger Automation Pipeline" to deploy fixes
 echo   - Watch real-time pipeline execution
 echo   - See PR creation and deployment status
 echo.
 echo WORKFLOW:
 echo   1. Click "Run Job" to simulate a failure
-echo   2. Click "Analyze ^& Fix" to see the diagnosis
-echo   3. Review the fix analysis and code changes
-echo   4. Click "Trigger Automation Pipeline" button
-echo   5. Watch the 5-stage automation process
-echo   6. Get PR link and deployment confirmation
+echo   2. NEW: Click "Search Similar Failures" to see MCP vector search
+echo   3. Review similar past failures with AI-powered matching
+echo   4. Click "Analyze ^& Fix" to see the diagnosis
+echo   5. Review the fix analysis and code changes
+echo   6. Click "Trigger Automation Pipeline" button
+echo   7. Watch the 5-stage automation process
+echo   8. Get PR link and deployment confirmation
 echo.
-echo MCP INTELLIGENCE DEMO:
+echo MCP INTELLIGENCE DEMOS:
 echo   - Press 'M' to run MCP intelligence demonstration
+echo   - Press 'H' to run MCP historical data demo (with sample data)
 echo   - Press 'A' to run automated failure scenarios
 echo   - Press 'Q' to quit and stop all services
 echo.
@@ -322,17 +329,19 @@ echo.
 echo.
 echo Choose an option:
 echo   [M] Run MCP Intelligence Demo
+echo   [H] Run MCP Historical Data Demo (with sample data)
 echo   [A] Run Automated Failure Scenarios
-echo   [H] View Pipeline History
+echo   [P] View Pipeline History
 echo   [L] View Logs
 echo   [Q] Quit and Stop All Services
 echo.
-choice /C MAHLQ /N /M "Enter your choice: "
+choice /C MHAPLQ /N /M "Enter your choice: "
 
-if errorlevel 5 goto CLEANUP
-if errorlevel 4 goto LOGS
-if errorlevel 3 goto HISTORY
-if errorlevel 2 goto AUTOMATED
+if errorlevel 6 goto CLEANUP
+if errorlevel 5 goto LOGS
+if errorlevel 4 goto HISTORY
+if errorlevel 3 goto AUTOMATED
+if errorlevel 2 goto MCP_HISTORY_DEMO
 if errorlevel 1 goto MCP_DEMO
 
 :MCP_DEMO
@@ -341,9 +350,55 @@ echo ===========================================================================
 echo   RUNNING MCP INTELLIGENCE DEMONSTRATION
 echo ============================================================================
 echo.
+echo This demo shows MCP Context Studio integration features:
+echo   - Health check and schema retrieval
+echo   - Vector search for semantic similarity
+echo   - Graph queries for relationships
+echo   - Hybrid queries combining sources
+echo   - Knowledge ingestion for learning
+echo.
 python demo_mcp_intelligence.py
 echo.
 echo MCP Demo complete! Check logs\mcp_demo.log for details.
+goto MENU
+
+:MCP_HISTORY_DEMO
+echo.
+echo ============================================================================
+echo   RUNNING MCP HISTORICAL DATA DEMONSTRATION
+echo ============================================================================
+echo.
+echo This demo showcases how MCP learns from historical failures:
+echo   - Generates 8 sample historical scenarios
+echo   - Ingests them into MCP Context Studio
+echo   - Runs mock cron jobs that fail
+echo   - Shows MCP finding similar patterns (95%% similarity)
+echo   - Demonstrates confidence boosting (+15-25%%)
+echo   - Compares with/without MCP (76%% faster!)
+echo.
+echo Step 1: Generating sample historical data...
+echo.
+python generate_sample_mcp_data.py
+if errorlevel 1 (
+    echo.
+    echo [WARNING] Sample data generation failed
+    echo Check MCP server connectivity and try again
+    echo.
+    pause
+    goto MENU
+)
+echo.
+echo [OK] Sample data generated successfully!
+echo.
+echo Step 2: Running demo with historical context...
+echo.
+timeout /t 2 /nobreak >nul
+python demo_mcp_with_history.py
+echo.
+echo MCP Historical Demo complete!
+echo Check logs\mcp_history_demo.log and logs\sample_data_generation.log
+echo.
+pause
 goto MENU
 
 :AUTOMATED
@@ -442,6 +497,8 @@ echo   2. Mock ICA Log (logs\mock_ica.log)
 echo   3. Webhook Log (logs\webhook.log)
 echo   4. Dashboard Log (logs\unified_dashboard.log)
 echo   5. MCP Demo Log (logs\mcp_demo.log)
+echo   6. MCP History Demo Log (logs\mcp_history_demo.log)
+echo   7. Sample Data Generation Log (logs\sample_data_generation.log)
 echo.
 echo Opening logs directory...
 explorer logs
@@ -505,6 +562,8 @@ echo   - GETTING_STARTED.md - Detailed setup
 echo.
 echo MCP Integration:
 echo   - MCP_INTEGRATION_README.md - MCP quick start
+echo   - VECTOR_SEARCH_DEMO_GUIDE.md - Vector search demo guide
+echo   - MCP_SAMPLE_DATA_GUIDE.md - Sample data guide
 echo   - MCP_INTELLIGENCE_LOCATIONS.md - Integration points
 echo   - ICA_MCP_BOB_ARCHITECTURE.md - Architecture
 echo.

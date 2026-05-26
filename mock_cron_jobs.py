@@ -419,6 +419,263 @@ class CronJob4_DatabaseLockError(MockCronJob):
         return result
 
 
+class CronJob5_MissingColumns(MockCronJob):
+    """
+    Cron Job 5: Missing Required Columns in CSV
+    Reads CSV file that is missing required columns, causing schema mismatch.
+    """
+    
+    def __init__(self, data_file='mock_data/customers_missing_columns.csv'):
+        super().__init__(
+            job_id="cron-job-5",
+            name="Customer Data Validation Job",
+            description="Validates customer data schema - fails with missing required columns"
+        )
+        self.failure_type = FailureType.INVALID_CONFIG
+        self.data_file = data_file
+        self.required_columns = ['customer_id', 'name', 'email', 'phone', 'status', 'created_date']
+        
+    def execute(self) -> Dict[str, Any]:
+        """Execute job with missing columns error."""
+        start_time = time.time()
+        self.status = CronJobStatus.RUNNING
+        
+        logger.info(f"Starting {self.name} (ID: {self.job_id})")
+        
+        try:
+            # Read CSV file
+            time.sleep(0.3)
+            logger.info(f"Validating CSV schema from {self.data_file}...")
+            
+            csv_path = Path(self.data_file)
+            if not csv_path.exists():
+                csv_path = MOCK_DATA_DIR / Path(self.data_file).name
+            
+            with open(csv_path, 'r') as f:
+                reader = csv.DictReader(f)
+                actual_columns = reader.fieldnames or []
+                
+                # Check for missing columns
+                missing_columns = [col for col in self.required_columns if col not in actual_columns]
+                
+                if missing_columns:
+                    raise ValueError(f"CSV schema mismatch: Missing required columns: {missing_columns}")
+                
+                # If we get here, all columns exist
+                for row in reader:
+                    logger.info(f"Processing customer {row['customer_id']}")
+            
+            result = {
+                'status': 'success',
+                'job_id': self.job_id,
+                'duration': time.time() - start_time
+            }
+            
+        except ValueError as e:
+            duration = time.time() - start_time
+            error_msg = f"Invalid configuration: {str(e)}"
+            
+            logger.error(f"{self.name} failed: {error_msg}")
+            
+            # Determine which columns are missing
+            csv_path = Path(self.data_file)
+            if not csv_path.exists():
+                csv_path = MOCK_DATA_DIR / Path(self.data_file).name
+            
+            with open(csv_path, 'r') as f:
+                reader = csv.DictReader(f)
+                actual_columns = list(reader.fieldnames or [])
+            
+            missing_columns = [col for col in self.required_columns if col not in actual_columns]
+            
+            result = {
+                'status': 'failed',
+                'job_id': self.job_id,
+                'duration': duration,
+                'error': error_msg,
+                'error_type': f"{self.failure_type.value} (missing_columns)",
+                'error_details': {
+                    'issue': 'CSV schema mismatch due to missing required columns',
+                    'severity': 'high',
+                    'impact': 'Job fails before processing because expected input contract is broken',
+                    'missing_columns': missing_columns,
+                    'expected_columns': self.required_columns,
+                    'actual_columns': actual_columns,
+                    'affected_component': self.data_file,
+                    'root_cause': 'CSV file does not contain all required columns for processing',
+                    'stack_trace': [
+                        'File "mock_cron_jobs.py", line 450, in execute',
+                        '  raise ValueError(f"CSV schema mismatch: Missing required columns: {missing_columns}")',
+                        'ValueError: CSV schema mismatch'
+                    ]
+                },
+                'fix_suggestions': [
+                    'Add missing columns to the CSV file',
+                    'Update CSV generation process to include all required fields',
+                    'Implement schema validation before job execution',
+                    'Add column mapping configuration for flexible schema',
+                    'Use default values for optional columns'
+                ]
+            }
+            self.status = CronJobStatus.FAILED
+        
+        self._record_execution(result)
+        return result
+
+
+class CronJob6_InvalidFormat(MockCronJob):
+    """
+    Cron Job 6: Invalid Data Formats in CSV Records
+    Reads CSV file with malformed field values (invalid email, phone, date, status).
+    """
+    
+    def __init__(self, data_file='mock_data/customers_invalid_format.csv'):
+        super().__init__(
+            job_id="cron-job-6",
+            name="Customer Data Validation Job",
+            description="Validates customer data formats - fails with invalid field values"
+        )
+        self.failure_type = FailureType.INVALID_CONFIG
+        self.data_file = data_file
+        
+    def _validate_email(self, email: str) -> bool:
+        """Validate email format."""
+        return '@' in email and '.' in email.split('@')[1]
+    
+    def _validate_phone(self, phone: str) -> bool:
+        """Validate phone format (must start with 555-)."""
+        return phone.startswith('555-') and len(phone) == 8
+    
+    def _validate_date(self, date_str: str) -> bool:
+        """Validate date format (YYYY-MM-DD)."""
+        try:
+            datetime.strptime(date_str, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
+    
+    def _validate_status(self, status: str) -> bool:
+        """Validate status value (must be 'active' or 'inactive')."""
+        return status.lower() in ['active', 'inactive']
+        
+    def execute(self) -> Dict[str, Any]:
+        """Execute job with invalid format error."""
+        start_time = time.time()
+        self.status = CronJobStatus.RUNNING
+        
+        logger.info(f"Starting {self.name} (ID: {self.job_id})")
+        
+        validation_errors = []
+        
+        try:
+            # Read CSV file
+            time.sleep(0.3)
+            logger.info(f"Validating customer data formats from {self.data_file}...")
+            
+            csv_path = Path(self.data_file)
+            if not csv_path.exists():
+                csv_path = MOCK_DATA_DIR / Path(self.data_file).name
+            
+            with open(csv_path, 'r') as f:
+                reader = csv.DictReader(f)
+                for row_num, row in enumerate(reader, start=2):  # Start at 2 (header is line 1)
+                    customer_id = row['customer_id']
+                    
+                    # Validate email
+                    if not self._validate_email(row['email']):
+                        validation_errors.append({
+                            'row': row_num,
+                            'customer_id': customer_id,
+                            'field': 'email',
+                            'value': row['email'],
+                            'error': 'Invalid email format (missing @ or domain)'
+                        })
+                    
+                    # Validate phone
+                    if not self._validate_phone(row['phone']):
+                        validation_errors.append({
+                            'row': row_num,
+                            'customer_id': customer_id,
+                            'field': 'phone',
+                            'value': row['phone'],
+                            'error': 'Invalid phone format (should start with 555- and be 8 chars)'
+                        })
+                    
+                    # Validate date
+                    if not self._validate_date(row['created_date']):
+                        validation_errors.append({
+                            'row': row_num,
+                            'customer_id': customer_id,
+                            'field': 'created_date',
+                            'value': row['created_date'],
+                            'error': 'Invalid date format (should be YYYY-MM-DD)'
+                        })
+                    
+                    # Validate status
+                    if not self._validate_status(row['status']):
+                        validation_errors.append({
+                            'row': row_num,
+                            'customer_id': customer_id,
+                            'field': 'status',
+                            'value': row['status'],
+                            'error': "Invalid status (should be 'active' or 'inactive')"
+                        })
+            
+            # If we found validation errors, raise exception
+            if validation_errors:
+                raise ValueError(f"Found {len(validation_errors)} validation errors in CSV data")
+            
+            result = {
+                'status': 'success',
+                'job_id': self.job_id,
+                'duration': time.time() - start_time
+            }
+            
+        except ValueError as e:
+            duration = time.time() - start_time
+            error_msg = f"Invalid configuration: {str(e)}"
+            
+            logger.error(f"{self.name} failed: {error_msg}")
+            
+            # Get first few errors for display
+            sample_errors = validation_errors[:5]
+            
+            result = {
+                'status': 'failed',
+                'job_id': self.job_id,
+                'duration': duration,
+                'error': error_msg,
+                'error_type': f"{self.failure_type.value} (invalid_format)",
+                'error_details': {
+                    'issue': 'Input records contain malformed field values',
+                    'severity': 'high',
+                    'impact': 'Job fails when parsing invalid email, phone, date, or status values',
+                    'validation_rule': 'email/date/phone/status format validation',
+                    'total_errors': len(validation_errors),
+                    'sample_errors': sample_errors,
+                    'affected_component': self.data_file,
+                    'root_cause': 'CSV file contains records with invalid data formats that do not meet validation rules',
+                    'stack_trace': [
+                        'File "mock_cron_jobs.py", line 580, in execute',
+                        '  raise ValueError(f"Found {len(validation_errors)} validation errors in CSV data")',
+                        'ValueError: Found validation errors in CSV data'
+                    ]
+                },
+                'fix_suggestions': [
+                    'Implement data validation at data entry point',
+                    'Add data cleansing/transformation before processing',
+                    'Use regex patterns for format validation',
+                    'Implement graceful error handling to skip invalid records',
+                    'Add data quality monitoring and alerts',
+                    'Create data validation rules documentation'
+                ]
+            }
+            self.status = CronJobStatus.FAILED
+        
+        self._record_execution(result)
+        return result
+
+
 class CronJobManager:
     """Manages multiple cron jobs and their execution."""
     
@@ -428,7 +685,9 @@ class CronJobManager:
             'cron-job-1': CronJob1_NullReferenceError(),
             'cron-job-2': CronJob2_MemoryOverflow(),
             'cron-job-3': CronJob3_TimeoutError(),
-            'cron-job-4': CronJob4_DatabaseLockError()
+            'cron-job-4': CronJob4_DatabaseLockError(),
+            'cron-job-5': CronJob5_MissingColumns(),
+            'cron-job-6': CronJob6_InvalidFormat()
         }
         
     def list_jobs(self) -> List[Dict[str, Any]]:

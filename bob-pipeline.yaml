@@ -75,6 +75,18 @@ stages:
           - script: |
               echo "Deployment completed."
             displayName: Deployment confirmation
+          - script: |
+              echo "Recording fix in historical log..."
+              python post_deployment_hook.py \
+                --job-name "${JOB_NAME:-Azure Function Deployment}" \
+                --error-type "${ERROR_TYPE:-Deployment Issue}" \
+                --fix-description "${FIX_DESCRIPTION:-Deployment fix applied}" \
+                --category "${ERROR_CATEGORY:-Deployment}" \
+                --severity "${ERROR_SEVERITY:-medium}" \
+                --deployment-id "$(Build.BuildId)"
+            displayName: Record Fix in Historical Log
+            condition: and(succeeded(), ne(variables['SKIP_HISTORICAL_UPDATE'], 'true'))
+            continueOnError: true
   - stage: Rollback
     displayName: "Rollback on Failure"
     dependsOn: Deploy

@@ -400,20 +400,30 @@ Find similar cron job failures with their resolutions.
             # Step 3: Perform standard ICA analysis
             analysis_result = self.process_analysis(diagnostic_package)
             
+            # Ensure analysis_result is not None
+            if analysis_result is None:
+                logger.error("ICA analysis returned None")
+                return {
+                    'status': 'error',
+                    'message': 'ICA analysis returned no result',
+                    'timestamp': format_timestamp()
+                }
+            
             # Step 4: Enhance confidence if similar patterns found
             if similar_failures and analysis_result.get('status') == 'success':
-                root_cause = analysis_result.get('root_cause', {})
-                original_confidence = root_cause.get('confidence', 0.0)
-                
-                # Boost confidence based on historical matches
-                confidence_boost = min(0.2, len(similar_failures) * 0.04)
-                enhanced_confidence = min(1.0, original_confidence + confidence_boost)
-                
-                root_cause['confidence'] = enhanced_confidence
-                root_cause['historical_matches'] = len(similar_failures)
-                root_cause['mcp_enhanced'] = True
-                
-                logger.info(f"Confidence boosted from {original_confidence:.2%} to {enhanced_confidence:.2%}")
+                root_cause = analysis_result.get('root_cause')
+                if root_cause is not None:
+                    original_confidence = root_cause.get('confidence', 0.0)
+                    
+                    # Boost confidence based on historical matches
+                    confidence_boost = min(0.2, len(similar_failures) * 0.04)
+                    enhanced_confidence = min(1.0, original_confidence + confidence_boost)
+                    
+                    root_cause['confidence'] = enhanced_confidence
+                    root_cause['historical_matches'] = len(similar_failures)
+                    root_cause['mcp_enhanced'] = True
+                    
+                    logger.info(f"Confidence boosted from {original_confidence:.2%} to {enhanced_confidence:.2%}")
             
             return analysis_result
             

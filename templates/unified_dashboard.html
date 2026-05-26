@@ -489,6 +489,223 @@
             background: #5568d3;
             transform: scale(1.05);
         }
+
+        .vector-search-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .vector-search-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .vector-search-header h3 {
+            color: #667eea;
+            font-size: 1.5em;
+            margin: 0;
+            flex: 1;
+        }
+
+        .vector-search-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .similar-failure-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .similar-failure-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .similarity-score {
+            display: inline-block;
+            background: #55efc4;
+            color: #00b894;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .failure-metadata {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .metadata-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .vector-search-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .vector-search-empty-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .btn-search-similar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-search-similar:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-apply-fix {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 10px;
+        }
+
+        .btn-apply-fix:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 184, 148, 0.4);
+        }
+
+        .btn-apply-fix:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-show-history {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn-show-history:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4);
+        }
+
+        .historical-failure-item {
+            background: white;
+            border-left: 4px solid #00b894;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .historical-failure-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .historical-job-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .historical-timestamp {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .historical-error {
+            background: #fff5f5;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #ff7675;
+        }
+
+        .historical-resolution {
+            background: #d4edda;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #00b894;
+        }
+
+        .historical-metadata {
+            display: flex;
+            gap: 15px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .metadata-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -496,6 +713,9 @@
         <div class="header">
             <h1>🚀 Cron Job Automation Dashboard</h1>
             <p>Run mock scenarios, analyze failures, and trigger real automation pipeline</p>
+            <button class="btn-show-history" onclick="showAllHistoricalData()">
+                📊 Show All Historical Data from Context Studio
+            </button>
         </div>
 
         <div id="jobs-container" class="jobs-grid">
@@ -529,11 +749,28 @@
         </div>
     </div>
 
+    <!-- Historical Data Modal -->
+    <div id="historical-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📊 All Historical Failures from Context Studio</h2>
+                <button class="btn-show-history" onclick="refreshHistoricalData()" style="margin: 0 10px; padding: 8px 20px; font-size: 0.9em;">
+                    🔄 Refresh
+                </button>
+                <button class="close-btn" onclick="closeHistoricalModal()">&times;</button>
+            </div>
+            <div id="historical-content">
+                <!-- Historical data will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <script>
         let jobs = [];
         let currentAnalysis = null;
         let currentJobId = null;
         let automationInterval = null;
+        let similarFailuresCache = {};
 
         // Load jobs on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -594,9 +831,111 @@
                     <div class="error-title">Last Error:</div>
                     <div class="error-message">${job.last_error || 'No error'}</div>
                 </div>
+                <div id="vector-search-container-${job.job_id}" style="display: none; margin-top: 15px;">
+                    <div class="vector-search-section">
+                        <div class="vector-search-header">
+                            <h3>🔍 Similar Past Failures (MCP Vector Search)</h3>
+                            <span class="vector-search-badge">AI-Powered</span>
+                        </div>
+                        <button class="btn-search-similar" onclick="searchSimilarFailures('${job.job_id}')">
+                            🔍 Search Similar Failures
+                        </button>
+                        <div id="similar-failures-${job.job_id}" style="margin-top: 15px;">
+                            <!-- Similar failures will be displayed here -->
+                        </div>
+                    </div>
+                </div>
             `;
 
             return card;
+        }
+
+        async function searchSimilarFailures(jobId) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Searching...';
+
+            try {
+                const response = await fetch(`/api/jobs/${jobId}/similar-failures`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displaySimilarFailures(data.similar_failures, jobId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error searching similar failures:', error);
+                alert('Error searching similar failures: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 Search Similar Failures';
+            }
+        }
+
+        function displaySimilarFailures(failures, jobId) {
+            const container = document.getElementById(`similar-failures-${jobId}`);
+            
+            if (!failures || failures.length === 0) {
+                container.innerHTML = `
+                    <div class="vector-search-empty">
+                        <div class="vector-search-empty-icon">🔍</div>
+                        <p>No similar failures found in historical data</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Cache the failures for this job
+            similarFailuresCache[jobId] = failures;
+
+            let html = '';
+            failures.forEach((failure, index) => {
+                const score = (failure.similarity_score * 100).toFixed(1);
+                html += `
+                    <div class="similar-failure-card">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong>Similar Failure #${index + 1}</strong>
+                                <span class="similarity-score">${score}% Match</span>
+                                ${failure.resolution ? `
+                                    <button class="btn-apply-fix" onclick="applyHistoricalFix('${jobId}', ${index})">
+                                        ⚡ Apply
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; color: #666;">
+                            <strong>Error:</strong> ${failure.error_message}
+                        </div>
+                        ${failure.resolution ? `
+                            <div style="margin-top: 8px; color: #00b894;">
+                                <strong>✓ Resolution:</strong> ${failure.resolution}
+                            </div>
+                        ` : ''}
+                        <div class="failure-metadata">
+                            <div class="metadata-item">
+                                <span>📅</span>
+                                <span>${failure.timestamp || 'Unknown date'}</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span>🏷️</span>
+                                <span>${failure.category || 'Uncategorized'}</span>
+                            </div>
+                            ${failure.fix_applied ? `
+                                <div class="metadata-item">
+                                    <span>✅</span>
+                                    <span>Fix Applied</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
         async function runJob(jobId) {
@@ -620,15 +959,26 @@
                         job.last_error = result.error;
                     }
 
-                    // Show error if failed
-                    if (result.status === 'failed') {
-                        const errorDiv = document.getElementById(`error-${jobId}`);
-                        errorDiv.classList.add('show');
-                        errorDiv.querySelector('.error-message').textContent = result.error;
-                    }
-
-                    // Re-render jobs
+                    // Re-render jobs first
                     renderJobs();
+                    
+                    // Then show error and vector search if failed
+                    if (result.status === 'failed') {
+                        // Small delay to ensure DOM is updated
+                        setTimeout(() => {
+                            const errorDiv = document.getElementById(`error-${jobId}`);
+                            if (errorDiv) {
+                                errorDiv.classList.add('show');
+                                errorDiv.querySelector('.error-message').textContent = result.error;
+                            }
+                            
+                            // Show vector search section
+                            const vectorSearchContainer = document.getElementById(`vector-search-container-${jobId}`);
+                            if (vectorSearchContainer) {
+                                vectorSearchContainer.style.display = 'block';
+                            }
+                        }, 100);
+                    }
                 }
             } catch (error) {
                 console.error('Error running job:', error);
@@ -809,9 +1159,40 @@
                 if (state.status === 'completed' || state.status === 'failed') {
                     clearInterval(automationInterval);
                     automationInterval = null;
+                    
+                    // If automation completed successfully and historical modal is open, refresh it
+                    if (state.status === 'completed') {
+                        const historicalModal = document.getElementById('historical-modal');
+                        if (historicalModal && historicalModal.classList.contains('show')) {
+                            console.log('Automation completed - refreshing historical data...');
+                            // Wait a moment for the historical update to complete
+                            setTimeout(() => {
+                                refreshHistoricalData();
+                            }, 1000);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error updating automation status:', error);
+            }
+        }
+        
+        async function refreshHistoricalData() {
+            const content = document.getElementById('historical-content');
+            if (!content) return;
+            
+            console.log('Refreshing historical data...');
+            
+            try {
+                const response = await fetch('/api/historical-failures');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.failures && data.failures.length > 0) {
+                    displayHistoricalData(data.failures);
+                    console.log(`Historical data refreshed: ${data.failures.length} records`);
+                }
+            } catch (error) {
+                console.error('Error refreshing historical data:', error);
             }
         }
 
@@ -823,7 +1204,8 @@
                 { key: 'analysis', name: 'ICA Analysis', icon: '🔍' },
                 { key: 'automation', name: 'BOB Automation', icon: '🤖' },
                 { key: 'deployment', name: 'Deployment', icon: '🚀' },
-                { key: 'validation', name: 'Validation', icon: '✅' }
+                { key: 'validation', name: 'Validation', icon: '✅' },
+                { key: 'historical_update', name: 'Historical Log Update', icon: '📚' }
             ];
 
             let html = '<div class="pipeline-progress">';
@@ -900,12 +1282,171 @@
         window.onclick = function(event) {
             const analysisModal = document.getElementById('analysis-modal');
             const automationModal = document.getElementById('automation-modal');
+            const historicalModal = document.getElementById('historical-modal');
             
             if (event.target === analysisModal) {
                 closeAnalysisModal();
             }
             if (event.target === automationModal) {
                 closeAutomationModal();
+            }
+            if (event.target === historicalModal) {
+                closeHistoricalModal();
+            }
+        }
+
+        async function showAllHistoricalData() {
+            const modal = document.getElementById('historical-modal');
+            const content = document.getElementById('historical-content');
+            
+            // Show loading
+            content.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="loading"></div>
+                    <p>Loading historical data from Context Studio...</p>
+                </div>
+            `;
+            modal.classList.add('show');
+            
+            try {
+                const response = await fetch('/api/historical-failures');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.failures && data.failures.length > 0) {
+                    displayHistoricalData(data.failures);
+                } else {
+                    content.innerHTML = `
+                        <div class="no-data-message">
+                            <div style="font-size: 3em; margin-bottom: 15px;">📊</div>
+                            <p>Unable to load historical data</p>
+                            <p style="margin-top: 10px; color: #666;">The historical data file should be available at: historical_failures_for_context_studio.txt</p>
+                            <p style="margin-top: 5px; color: #666;">Check the console for error details or verify the file exists.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+                content.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h3>⚠️ Error Loading Data</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayHistoricalData(failures) {
+            const content = document.getElementById('historical-content');
+            
+            let html = `
+                <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+                    <strong>📊 Total Historical Failures:</strong> ${failures.length}
+                    <br>
+                    <small style="color: #666;">Data retrieved from Context Studio MCP Server</small>
+                </div>
+            `;
+            
+            failures.forEach((failure, index) => {
+                const timestamp = new Date(failure.timestamp).toLocaleString();
+                const confidence = (failure.confidence * 100).toFixed(0);
+                
+                html += `
+                    <div class="historical-failure-item">
+                        <div class="historical-failure-header">
+                            <div class="historical-job-name">${failure.job_name || 'Unknown Job'}</div>
+                            <div class="historical-timestamp">${timestamp}</div>
+                        </div>
+                        
+                        <div class="historical-error">
+                            <strong>❌ Error:</strong> ${failure.error_message}
+                        </div>
+                        
+                        ${failure.resolution ? `
+                            <div class="historical-resolution">
+                                <strong>✅ Resolution:</strong> ${failure.resolution}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="historical-metadata">
+                            <span class="metadata-badge">
+                                <span>🏷️</span>
+                                <span>${failure.category || 'Uncategorized'}</span>
+                            </span>
+                            <span class="metadata-badge">
+                                <span>⚠️</span>
+                                <span>${failure.severity || 'medium'}</span>
+                            </span>
+                            <span class="metadata-badge">
+                                <span>📈</span>
+                                <span>Confidence: ${confidence}%</span>
+                            </span>
+                            ${failure.fix_applied ? `
+                                <span class="metadata-badge" style="background: #d4edda; color: #00b894;">
+                                    <span>✅</span>
+                                    <span>Fix Applied</span>
+                                </span>
+                            ` : ''}
+                            ${failure.prevented_incidents ? `
+                                <span class="metadata-badge">
+                                    <span>🛡️</span>
+                                    <span>Prevented: ${failure.prevented_incidents} incidents</span>
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+        }
+        
+        function closeHistoricalModal() {
+            const modal = document.getElementById('historical-modal');
+            modal.classList.remove('show');
+        }
+
+        async function applyHistoricalFix(jobId, failureIndex) {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Applying...';
+
+            try {
+                // Get the failure from cache
+                const failures = similarFailuresCache[jobId];
+                if (!failures || !failures[failureIndex]) {
+                    alert('Error: Failure data not found');
+                    btn.disabled = false;
+                    btn.innerHTML = '⚡ Apply';
+                    return;
+                }
+
+                const failure = failures[failureIndex];
+
+                const response = await fetch(`/api/jobs/${jobId}/apply-historical-fix`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        failure: failure,
+                        failure_index: failureIndex
+                    })
+                });
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    currentAnalysis = data.analysis;
+                    currentJobId = jobId;
+                    showAnalysisModal(data.analysis, jobId);
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error applying historical fix:', error);
+                alert('Error applying historical fix: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '⚡ Apply';
             }
         }
     </script>

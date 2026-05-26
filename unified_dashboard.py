@@ -197,6 +197,309 @@ def analyze_job(job_id):
         }), 500
 
 
+@app.route('/api/jobs/<job_id>/apply-historical-fix', methods=['POST'])
+def apply_historical_fix(job_id):
+    """Apply a historical fix to the current job failure."""
+    try:
+        # Get the job
+        job = job_manager.get_job(job_id)
+        if not job:
+            return jsonify({
+                'status': 'error',
+                'message': f'Job {job_id} not found'
+            }), 404
+        
+        # Get the historical failure data from request
+        data = request.get_json()
+        failure = data.get('failure')
+        
+        if not failure:
+            return jsonify({
+                'status': 'error',
+                'message': 'No failure data provided'
+            }), 400
+        
+        logger.info(f"Applying historical fix to job: {job_id}")
+        
+        # Create an analysis result based on the historical fix
+        # This mimics the structure of analyze_and_fix but uses historical data
+        fix_result = {
+            'status': 'fix_generated',
+            'diagnosis': {
+                'issue': failure.get('error_message', 'Unknown error'),
+                'severity': failure.get('severity', 'medium'),
+                'category': failure.get('category', 'Unknown')
+            },
+            'root_cause': failure.get('error_message', 'Unknown error'),
+            'confidence': failure.get('confidence', failure.get('similarity_score', 0.85)),
+            'fix_applied': {
+                'type': 'historical_fix',
+                'description': failure.get('resolution', 'Applied historical fix'),
+                'changes': [
+                    failure.get('fix_description', failure.get('resolution', 'Applied fix from similar past failure'))
+                ]
+            },
+            'code_changes': None,  # Historical fixes may not have code changes
+            'testing_recommendations': [
+                'Verify the fix resolves the current issue',
+                'Run integration tests',
+                'Monitor for similar failures'
+            ],
+            'source': 'historical_fix',
+            'historical_failure': {
+                'timestamp': failure.get('timestamp'),
+                'similarity_score': failure.get('similarity_score'),
+                'category': failure.get('category')
+            }
+        }
+        
+        # If the historical failure has specific fix details, add them
+        if failure.get('fix_description'):
+            fix_result['fix_applied']['changes'].append(f"Details: {failure.get('fix_description')}")
+        
+        if failure.get('stack_trace'):
+            fix_result['diagnosis']['stack_trace'] = failure.get('stack_trace')
+        
+        logger.info(f"Historical fix prepared for job {job_id}")
+        
+        return jsonify({
+            'status': 'success',
+            'analysis': fix_result,
+            'job_id': job_id,
+            'timestamp': datetime.utcnow().isoformat(),
+            'source': 'historical_fix'
+        })
+        
+    except Exception as e:
+        logger.error(f"Error applying historical fix to job {job_id}: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/jobs/<job_id>/similar-failures', methods=['POST'])
+def search_similar_failures(job_id):
+    """Search for similar past failures using MCP vector search."""
+    try:
+        # Get the job
+        job = job_manager.get_job(job_id)
+        if not job:
+            return jsonify({
+                'status': 'error',
+                'message': f'Job {job_id} not found'
+            }), 404
+        
+        if not job.last_error:
+            return jsonify({
+                'status': 'error',
+                'message': 'No error available for this job'
+            }), 400
+        
+        logger.info(f"Searching for similar failures for job: {job_id}")
+        
+        # Initialize MCP client
+        from src.mcp_client import MCPClientSync
+        mcp_client = MCPClientSync(get_config('config.yaml'))
+        
+        # Perform vector search with the error message
+        search_query = f"Error: {job.last_error}"
+        similar_failures = mcp_client.vector_search(search_query, top_k=5)
+        
+        # Format the results for display
+        formatted_failures = []
+        for failure in similar_failures:
+            # Extract relevant information from MCP response
+            content = failure.get('content', {})
+            metadata = failure.get('metadata', {})
+            
+            formatted_failures.append({
+                'error_message': content.get('error_message', content.get('description', 'Unknown error')),
+                'resolution': content.get('resolution', content.get('fix_description', '')),
+                'similarity_score': failure.get('score', 0.85),
+                'timestamp': metadata.get('timestamp', metadata.get('date', 'Unknown')),
+                'category': metadata.get('category', metadata.get('error_type', 'Uncategorized')),
+                'fix_applied': content.get('fix_applied', False)
+            })
+        
+        logger.info(f"Found {len(formatted_failures)} similar failures")
+        
+        return jsonify({
+            'status': 'success',
+            'similar_failures': formatted_failures,
+            'job_id': job_id,
+            'query': search_query,
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error searching similar failures for job {job_id}: {str(e)}")
+        # Return mock data for demonstration if MCP is not available
+        mock_failures = [
+            {
+                'error_message': 'Database connection timeout after 30 seconds',
+                'resolution': 'Increased connection timeout to 60 seconds and added retry logic',
+                'similarity_score': 0.92,
+                'timestamp': '2024-01-15T10:30:00Z',
+                'category': 'Database Error',
+                'fix_applied': True
+            },
+            {
+                'error_message': 'Failed to connect to database server',
+                'resolution': 'Updated connection string with correct credentials',
+                'similarity_score': 0.87,
+                'timestamp': '2024-01-10T14:20:00Z',
+                'category': 'Connection Error',
+                'fix_applied': True
+            },
+            {
+                'error_message': 'Database query timeout',
+                'resolution': 'Optimized query with proper indexing',
+                'similarity_score': 0.78,
+                'timestamp': '2024-01-05T09:15:00Z',
+                'category': 'Performance Issue',
+                'fix_applied': True
+            }
+        ]
+        
+        logger.info(f"Using mock data for demonstration (MCP not available: {str(e)})")
+        return jsonify({
+            'status': 'success',
+            'similar_failures': mock_failures,
+            'job_id': job_id,
+            'query': f"Error: {job.last_error if job else 'Unknown'}",
+            'timestamp': datetime.utcnow().isoformat(),
+            'note': 'Using mock data for demonstration'
+        })
+
+
+@app.route('/api/historical-failures', methods=['GET'])
+def get_historical_failures():
+    """Fetch all historical failures from the uploaded Context Studio data file."""
+    try:
+        logger.info("Loading historical failures from uploaded Context Studio data file")
+        
+        # Read from the local file that was uploaded to Context Studio
+        import json
+        from pathlib import Path
+        
+        data_file = Path('historical_failures_for_context_studio.jsonl')
+        
+        if not data_file.exists():
+            logger.warning("Historical data file not found locally")
+            return jsonify({
+                'status': 'error',
+                'message': 'Historical data file not found',
+                'failures': [],
+                'count': 0
+            })
+        
+        # Read and parse the JSONL file
+        all_failures = []
+        with open(data_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('//'):  # Skip empty lines and comments
+                    try:
+                        failure = json.loads(line)
+                        all_failures.append(failure)
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Skipping invalid JSON line: {e}")
+        
+        logger.info(f"Loaded {len(all_failures)} historical failures from file")
+        
+        # Format the results - data is already in the correct format from the file
+        formatted_failures = []
+        for failure in all_failures:
+            formatted_failures.append({
+                'id': failure.get('id', 'unknown'),
+                'job_name': failure.get('job_name', 'Unknown Job'),
+                'error_type': failure.get('error_type', 'Unknown Error'),
+                'error_message': failure.get('error_message', ''),
+                'stack_trace': failure.get('stack_trace', ''),
+                'resolution': failure.get('resolution', ''),
+                'fix_description': failure.get('fix_description', ''),
+                'timestamp': failure.get('timestamp', datetime.utcnow().isoformat()),
+                'category': failure.get('category', 'Unknown'),
+                'severity': failure.get('severity', 'medium'),
+                'fix_applied': failure.get('fix_applied', False),
+                'confidence': failure.get('confidence', 0.0),
+                'prevented_incidents': failure.get('prevented_incidents', 0)
+            })
+        
+        # Sort by timestamp descending (newest first)
+        formatted_failures.sort(key=lambda x: x['timestamp'], reverse=True)
+        
+        logger.info(f"Formatted {len(formatted_failures)} historical failures")
+        
+        note = f'Loaded {len(formatted_failures)} historical failure patterns from Context Studio data file'
+        
+        response = {
+            'status': 'success',
+            'failures': formatted_failures,
+            'count': len(formatted_failures),
+            'source': 'Context Studio MCP',
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        if note:
+            response['note'] = note
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        logger.error(f"Error fetching historical failures: {str(e)}", exc_info=True)
+        # Return mock data for demonstration if MCP is not available
+        mock_failures = [
+            {
+                'job_name': 'Data Processing Job',
+                'error_type': 'NullReferenceError',
+                'error_message': 'Cannot read property \'customerId\' of null',
+                'resolution': 'Added null check before accessing customer properties',
+                'timestamp': '2024-01-15T08:30:00Z',
+                'category': 'Code Error',
+                'severity': 'high',
+                'fix_applied': True,
+                'confidence': 0.95,
+                'prevented_incidents': 15
+            },
+            {
+                'job_name': 'Database Sync Job',
+                'error_type': 'ConnectionError',
+                'error_message': 'Failed to connect to database server',
+                'resolution': 'Updated connection string and added retry logic',
+                'timestamp': '2024-01-10T14:20:00Z',
+                'category': 'Connection Error',
+                'severity': 'critical',
+                'fix_applied': True,
+                'confidence': 0.92,
+                'prevented_incidents': 25
+            },
+            {
+                'job_name': 'Report Generator',
+                'error_type': 'TimeoutError',
+                'error_message': 'Database query timeout after 30 seconds',
+                'resolution': 'Optimized query with proper indexing',
+                'timestamp': '2024-01-05T09:15:00Z',
+                'category': 'Performance Issue',
+                'severity': 'medium',
+                'fix_applied': True,
+                'confidence': 0.88,
+                'prevented_incidents': 10
+            }
+        ]
+        
+        logger.info(f"Using mock data for demonstration (MCP not available: {str(e)})")
+        return jsonify({
+            'status': 'success',
+            'failures': mock_failures,
+            'count': len(mock_failures),
+            'source': 'Mock Data (for demonstration)',
+            'timestamp': datetime.utcnow().isoformat(),
+            'note': 'Using mock data - MCP not available'
+        })
+
+
 @app.route('/api/automation/trigger', methods=['POST'])
 def trigger_automation():
     """Trigger the actual automation pipeline to apply fixes."""
@@ -255,13 +558,17 @@ def execute_automation(job_id, analysis):
         
         time.sleep(1)
         
+        # Safely extract analysis data with null checks
+        diagnosis = analysis.get('diagnosis') if analysis else {}
+        diagnosis = diagnosis if diagnosis is not None else {}
+        
         diagnostic_package = {
             'operation_id': f'auto-{job_id}-{int(time.time())}',
             'function_name': f'CronJob-{job_id}',
             'timestamp': datetime.utcnow().isoformat() + 'Z',
             'error': {
-                'message': analysis.get('diagnosis', {}).get('issue', 'Unknown error'),
-                'type': analysis.get('diagnosis', {}).get('issue', 'Unknown'),
+                'message': diagnosis.get('issue', 'Unknown error'),
+                'type': diagnosis.get('issue', 'Unknown'),
                 'stack_trace': 'Simulated stack trace'
             },
             'logs': [],
@@ -282,21 +589,28 @@ def execute_automation(job_id, analysis):
         
         time.sleep(2)
         
+        # Safely extract fix data with null checks
+        fix_applied = analysis.get('fix_applied') if analysis else {}
+        fix_applied = fix_applied if fix_applied is not None else {}
+        
+        code_changes = analysis.get('code_changes') if analysis else {}
+        code_changes = code_changes if code_changes is not None else {}
+        
         analysis_package = {
             'status': 'success',
             'operation_id': diagnostic_package['operation_id'],
             'root_cause': {
                 'category': 'code_error',
-                'summary': analysis.get('root_cause', 'Unknown issue'),
-                'confidence': analysis.get('confidence', 0.85),
-                'details': analysis.get('diagnosis', {}).get('issue', '')
+                'summary': analysis.get('root_cause', 'Unknown issue') if analysis else 'Unknown issue',
+                'confidence': analysis.get('confidence', 0.85) if analysis else 0.85,
+                'details': diagnosis.get('issue', '')
             },
             'fixes': {
                 'code_fix': {
                     'file_path': 'src/CronJob.py',
-                    'description': analysis.get('fix_applied', {}).get('description', 'Apply fix'),
-                    'changes': analysis.get('fix_applied', {}).get('changes', []),
-                    'diff': analysis.get('code_changes', {}).get('fixed', '')
+                    'description': fix_applied.get('description', 'Apply fix'),
+                    'changes': fix_applied.get('changes', []),
+                    'diff': code_changes.get('fixed', '')
                 }
             },
             'risk_assessment': {
@@ -304,7 +618,7 @@ def execute_automation(job_id, analysis):
                 'approval_required': False,
                 'testing_required': True
             },
-            'next_steps': analysis.get('testing_recommendations', [])
+            'next_steps': analysis.get('testing_recommendations', []) if analysis else []
         }
         
         automation_state['stages']['analysis'] = {
@@ -368,6 +682,95 @@ def execute_automation(job_id, analysis):
             'status': 'completed',
             'message': 'Validation passed - No new failures detected'
         }
+        
+        # Record the fix after successful deployment and validation
+        try:
+            from src.pipeline_fix_tracker import get_fix_tracker
+            
+            # Get job details
+            job = job_manager.get_job(job_id)
+            job_name = job.name if job else job_id
+            
+            # Extract error details from analysis
+            error_message = diagnosis.get('issue', 'Unknown error')
+            error_type = analysis.get('root_cause', 'Unknown') if analysis else 'Unknown'
+            
+            # Get fix details
+            fix_applied = analysis.get('fix_applied') if analysis else {}
+            fix_applied = fix_applied if fix_applied is not None else {}
+            
+            resolution = fix_applied.get('description', 'Fix applied via automation')
+            fix_description = ', '.join(fix_applied.get('changes', [])) if fix_applied.get('changes') else 'Automated fix applied'
+            
+            # Determine category and severity
+            category = 'Code Error'  # Default, could be enhanced based on error type
+            severity = diagnosis.get('severity', 'medium')
+            
+            # Record the fix
+            tracker = get_fix_tracker()
+            fix_file = tracker.record_fix(
+                job_name=job_name,
+                error_type=error_type,
+                error_message=error_message,
+                stack_trace=diagnostic_package['error'].get('stack_trace', ''),
+                resolution=resolution,
+                fix_description=fix_description,
+                category=category,
+                severity=severity,
+                deployment_id=f"auto-deploy-{int(time.time())}",
+                pr_url=pr_url,
+                branch_name=branch_name
+            )
+            logger.info(f"Fix recorded: {fix_file}")
+        except Exception as e:
+            logger.error(f"Failed to record fix: {str(e)}")
+        
+        # Stage 6: Auto-update historical log
+        automation_state['current_stage'] = 'historical_update'
+        automation_state['stages']['historical_update'] = {
+            'status': 'running',
+            'message': 'Updating historical failure log...'
+        }
+        
+        time.sleep(1)
+        
+        # Process pending fixes and update historical log
+        try:
+            from src.pipeline_fix_tracker import get_fix_tracker
+            import asyncio
+            import sys
+            sys.path.insert(0, str(Path(__file__).parent))
+            from auto_update_historical_log import process_pipeline_fix
+            
+            tracker = get_fix_tracker()
+            pending_fixes = tracker.get_pending_fixes()
+            
+            if pending_fixes:
+                logger.info(f"Found {len(pending_fixes)} pending fix(es) to process")
+                for fix_file in pending_fixes:
+                    logger.info(f"Processing fix: {fix_file}")
+                    success = asyncio.run(process_pipeline_fix(fix_file))
+                    if success:
+                        tracker.mark_fix_processed(fix_file)
+                        logger.info(f"Successfully processed and marked: {fix_file}")
+                    else:
+                        logger.warning(f"Failed to process fix: {fix_file}")
+                
+                automation_state['stages']['historical_update'] = {
+                    'status': 'completed',
+                    'message': f'Updated historical log with {len(pending_fixes)} new fix(es)'
+                }
+            else:
+                automation_state['stages']['historical_update'] = {
+                    'status': 'completed',
+                    'message': 'No pending fixes to process'
+                }
+        except Exception as e:
+            logger.error(f"Error updating historical log: {str(e)}")
+            automation_state['stages']['historical_update'] = {
+                'status': 'completed',
+                'message': 'Historical update skipped (non-critical)'
+            }
         
         # Complete
         automation_state['status'] = 'completed'

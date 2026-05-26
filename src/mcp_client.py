@@ -120,7 +120,57 @@ class MCPClient:
             }
         )
         
-        return result.get("results", [])
+        # Debug logging
+        logger.info(f"Vector search raw result type: {type(result)}")
+        logger.info(f"Vector search raw result keys: {result.keys() if isinstance(result, dict) else 'N/A'}")
+        
+        if "error" in result or result.get("isError"):
+            logger.error(f"Vector search returned error: {result.get('error')}")
+            return []
+        
+        # MCP returns results in 'content' field as a list of text items
+        content_items = result.get("content", result.get("results", []))
+        
+        if not content_items:
+            logger.warning("No content items found in MCP response")
+            return []
+        
+        # Parse the text field from each content item
+        parsed_results = []
+        for item in content_items:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_content = item.get("text", "")
+                try:
+                    # Parse the JSON string in the text field
+                    parsed_data = json.loads(text_content)
+                    
+                    # Extract the actual results from the parsed data
+                    if isinstance(parsed_data, dict):
+                        # Check if there's an 'items' field (Context Studio format)
+                        if "items" in parsed_data:
+                            items = parsed_data.get("items", [])
+                            logger.info(f"Found {len(items)} items in Context Studio response")
+                            parsed_results.extend(items)
+                        # Otherwise check for 'results' or 'matches' field
+                        elif "results" in parsed_data or "matches" in parsed_data:
+                            actual_results = parsed_data.get("results", parsed_data.get("matches", []))
+                            parsed_results.extend(actual_results)
+                        else:
+                            # If no nested results, use the parsed data itself
+                            parsed_results.append(parsed_data)
+                    elif isinstance(parsed_data, list):
+                        parsed_results.extend(parsed_data)
+                        
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Failed to parse JSON from text field: {e}")
+                    # If parsing fails, treat the text as raw content
+                    parsed_results.append({"content": text_content})
+        
+        logger.info(f"Vector search returned {len(parsed_results)} parsed results")
+        if parsed_results and len(parsed_results) > 0:
+            logger.info(f"First parsed result keys: {parsed_results[0].keys() if isinstance(parsed_results[0], dict) else type(parsed_results[0])}")
+        
+        return parsed_results
     
     async def graph_query(
         self,
@@ -244,7 +294,9 @@ class MCPClient:
             }
         )
         
-        return result.get("status") == "success"
+        # MCP returns success if there's no error field
+        # The tool execution itself indicates success
+        return "error" not in result
     
     async def check_health(self) -> bool:
         """

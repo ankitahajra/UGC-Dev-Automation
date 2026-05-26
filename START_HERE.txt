@@ -11,6 +11,7 @@
    1. Double-click: START_ALL_DEMOS.bat
    2. Wait for all services to start (~30 seconds)
    3. Browsers will open automatically to:
+      - Unified Dashboard: http://localhost:5002
       - Cron Job Dashboard: http://localhost:5001
       - Web Dashboard: http://localhost:3000
 
@@ -20,8 +21,14 @@
    ✓ Start Diagnostics Webhook (port 8080)
    ✓ Start Cron Job Dashboard (port 5001)
    ✓ Start Web Dashboard (port 3000)
+   ✓ Start Unified Dashboard (port 5002) with MCP Intelligence
    ✓ Run automated demo scenarios
    ✓ Show you everything the system can do!
+
+   📝 NOTE: Historical data is already uploaded to Context Studio!
+   The system uses pre-loaded historical failure patterns from
+   historical_failures_for_context_studio.txt for all demonstrations.
+   No manual data push needed - just run the demos!
 
 📌 INDIVIDUAL DEMOS (Choose One):
 

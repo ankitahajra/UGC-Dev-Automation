@@ -1,0 +1,13 @@
+{
+  "job_name": "Test Data Processing Job",
+  "error_type": "TestNullReferenceError",
+  "error_message": "Test: Cannot read property 'testId' of null",
+  "stack_trace": "at testFunction (test.js:10:5)\nat main (test.js:5:3)",
+  "resolution": "Added null check before accessing test properties",
+  "fix_description": "Implemented defensive programming with null checks for test",
+  "category": "Code Error",
+  "severity": "medium",
+  "timestamp": "2026-05-26T12:23:30.605797Z",
+  "deployment_id": "test-deploy-20260526-122330",
+  "metadata": {}
+}
